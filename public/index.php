@@ -9,6 +9,9 @@ if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php'))
     require $maintenance;
 }
 
+// Register the functions
+require __DIR__.'/functions.php';
+
 // Register the Composer autoloader...
 require __DIR__.'/../vendor/autoload.php';
 
