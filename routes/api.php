@@ -24,4 +24,5 @@ Route::prefix('user')->group(function () {
     route::post('/create', [UserController::class, 'create']);
     route::post('/login', [UserController::class, 'login']);
     route::get('/profil/{id}', [UserController::class, 'profil']);
+    route::put('/update/{id}', [UserController::class, 'update']);
 });

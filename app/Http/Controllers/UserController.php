@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Employeur;
 use App\Models\Independant;
 use App\Models\Retraite;
+use App\Models\Salarie;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -23,7 +24,8 @@ class UserController extends Controller
                 'telephone' => ['required', 'unique:users', 'numeric', 'digits:10'],
                 'id_regime' => ['required'],
                 'email' => ['required', 'unique:users', 'email'],
-                'password' => ['required', 'min:8']
+                'password' => ['required', 'min:8'],
+                'name' => ['required']
             ]);
 
             // Gestion des erreurs de validation
@@ -35,25 +37,22 @@ class UserController extends Controller
             $user = User::create($map_data = map_data($apiData, ['telephone', 'id_regime', 'email', 'password']));
 
             if ($user) {
-                $data = [];
-
+                $data =  ['id_user' => $user->id, 'full_name' => $apiData['name'], 'sexe' => $apiData['sexe']];
                 switch ($user->id_regime) {
                     case 1:
-                        $data = insert_table($data, ['id_user' => $user->id, 'raison_social' => $apiData['name']]);
-                        Employeur::insert($data);
+                        $data_ = ['id_user' => $user->id, 'raison_social' => $apiData['name']];
+                        Employeur::insert($data_);
                         break;
 
                     case 2:
-                        return 'salarie';
+                        Salarie::insert($data);
                         break;
 
                     case 3:
-                        $data = insert_table($data, ['id_user' => $user->id, 'full_name' => $apiData['name'], 'sexe' => $apiData['sexe']]);
                         Independant::insert($data);
                         break;
 
                     case 4:
-                        $data = insert_table($data, ['id_user' => $user->id, 'full_name' => $apiData['name'], 'sexe' => $apiData['sexe']]);
                         Retraite::insert($data);
                         break;
 
@@ -110,7 +109,7 @@ class UserController extends Controller
     }
 
 
-    public function profil($id)
+    public static function profil($id)
     {
 
         try {
@@ -122,7 +121,11 @@ class UserController extends Controller
                         break;
 
                     case 2:
-                        return 'salarie';
+                        $salarie = SalarieController::getinfo($id);
+                        $salarie->data_employeur = reverse_unset_obj_data(EmployeurController::getinfo($salarie->id_employeur), [
+                            'raison_social', 'nom_responsable', 'situation_geographique', 'photo', 'commune', 'agence'
+                        ]);
+                        return $salarie;
                         break;
 
                     case 3:
@@ -138,11 +141,113 @@ class UserController extends Controller
                         break;
                 }
             }
+            throw new Exception("Profile inconnu", 1);
         } catch (\Throwable $th) {
             return response()->json(['success' => false, 'message' => $th->getMessage()], 500);
         }
     }
 
 
-    public function update() {}
+    public function update(Request $request, $id)
+    {
+
+        try {
+            if ($user = User::find($id)) {
+
+                $apiData = $request->json()->all();
+                if (count($data_user = map_data($apiData, ['telephone', 'email'])) > 0) {
+                    $validator = Validator::make($data_user, map_data_rule($data_user, [
+                        'telephone' => ['required', 'numeric', 'digits:10', Rule::unique('users')->ignore($id)],
+                        'email' => ['required', 'email', Rule::unique('users')->ignore($id)]
+                    ]));
+
+                    // Gestion des erreurs de validation
+                    if ($validator->fails()) {
+                        return response()->json(['success' => false, 'message' => $validator->errors()], 422);
+                    }
+
+                    User::where('id', $id)->update($data_user);
+                }
+
+                $id_regime = $user->id_regime;
+                switch ($id_regime) {
+                    case 1:
+                        $data = map_data($apiData, [
+                            'raison_social',
+                            'num_registre_commerce',
+                            'nom_responsable',
+                            'matricule_cnps',
+                            'domaine_activite',
+                            'effectifs',
+                            'pays',
+                            'id_commune',
+                            'situation_geographique',
+                            'photo'
+                        ]);
+                        return EmployeurController::updateinfo($id, $data);
+                        break;
+
+                    case 2:
+                        $data = map_data($apiData, [
+                            'full_name',
+                            'date_naissance',
+                            'sexe',
+                            'matricule_cnps',
+                            'employeur',
+                            'id_employeur',
+                            'date_embauche',
+                            'date_immatriculation',
+                            'poste',
+                            'salaire',
+                            'pays',
+                            'id_commune',
+                            'lieux_activite',
+                            'lieux_residence',
+                            'photo'
+                        ]);
+                        return SalarieController::updateinfo($id, $data);
+                        break;
+
+                    case 3:
+                        $data = map_data($apiData, [
+                            'full_name',
+                            'date_naissance',
+                            'sexe',
+                            'matricule_cnps',
+                            'activite',
+                            'id_categorie',
+                            'revenue_soumis',
+                            'pays',
+                            'id_commune',
+                            'lieux_activite',
+                            'lieux_residence',
+                            'photo'
+                        ]);
+                        return IndependantController::updateinfo($id, $data);
+                        break;
+
+                    case 4:
+                        $data = map_data($apiData, [
+                            'full_name',
+                            'date_naissance',
+                            'sexe',
+                            'matricule_cnps',
+                            'pays',
+                            'id_commune',
+                            'lieux_residence',
+                            'photo'
+                        ]);
+                        return  RetraiteController::updateinfo($id, $data);
+                        break;
+
+                    default:
+                        throw new Exception("Profile inconnu", 1);
+                        break;
+                }
+            }
+            throw new Exception("Profile inconnu", 1);
+        } catch (\Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()], 500);
+        }
+    }
 }
