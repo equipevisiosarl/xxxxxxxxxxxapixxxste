@@ -177,7 +177,7 @@ class UserController extends Controller
                             'num_registre_commerce',
                             'nom_responsable',
                             'matricule_cnps',
-                            'domaine_activite',
+                            'id_domaine_activite',
                             'effectifs',
                             'pays',
                             'id_commune',

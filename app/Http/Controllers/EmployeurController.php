@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Domaines_activite;
 use App\Models\Employeur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -17,7 +18,7 @@ class EmployeurController extends Controller
             'num_registre_commerce' => ['required', Rule::unique('employeurs')->ignore($id)],
             'nom_responsable' => ['required'],
             'matricule_cnps' => ['required', Rule::unique('employeurs')->ignore($id)],
-            'domaine_activite' => ['required'],
+            'id_domaine_activite' => ['required'],
             'effectifs' => ['required', 'numeric'],
             'pays' => ['required'],
             'id_commune' => ['required'],
@@ -32,6 +33,7 @@ class EmployeurController extends Controller
             ->leftJoin('regimes', 'regimes.id', 'users.id_regime')
             ->leftJoin('communes', 'communes.id', 'employeurs.id_commune')
             ->leftJoin('agences', 'agences.id', 'communes.id_agence')
+            ->leftJoin('domaines_activites', 'domaines_activites.id', 'employeurs.id_domaine_activite')
             ->where('employeurs.id_user', $id)
             ->orderBy('employeurs.id')
             ->first();
@@ -56,5 +58,10 @@ class EmployeurController extends Controller
         } catch (\Throwable $th) {
             return response()->json(['success' => false, 'message' => $th->getMessage()], 500);
         }
+    }
+
+    public function get_domaines_activites()
+    {
+        return Domaines_activite::all();
     }
 }

@@ -68,3 +68,4 @@ function map_data_rule(array|object $data, array $arrayMap)
     return $rules;
 }
 
+

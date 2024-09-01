@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('num_registre_commerce');
             $table->string('nom_responsable');
             $table->string('matricule_cnps');
-            $table->string('domaine_activite');
+            $table->string('id_domaine_activite');
             $table->string('effectifs');
             $table->string('pays');
             $table->integer('id_commune');
