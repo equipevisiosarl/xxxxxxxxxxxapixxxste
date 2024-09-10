@@ -40,6 +40,15 @@ function reverse_unset_obj_data(object $data, array $noUnsetData)
     return $datas;
 }
 
+function object_items_null(array $array)
+{ $datas = new stdClass();
+    foreach ($array as $value) {
+        
+           $datas->$value = null;
+    }
+    return $datas;
+}
+
 
 
 function map_data(array|object $data, array $arrayMap) 
@@ -67,5 +76,19 @@ function map_data_rule(array|object $data, array $arrayMap)
     }
     return $rules;
 }
+
+function removeAccents($string) {
+    $accents = [
+        'é' => 'e', 'è' => 'e', 'ê' => 'e', 'ë' => 'e',
+        'à' => 'a', 'â' => 'a', 'ä' => 'a',
+        'ô' => 'o', 'ö' => 'o', 'ò' => 'o',
+        'ù' => 'u', 'û' => 'u', 'ü' => 'u',
+        'ç' => 'c', 'î' => 'i', 'ï' => 'i',
+        'ñ' => 'n'
+    ];
+
+    return strtr($string, $accents);
+}
+
 
 

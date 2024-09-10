@@ -64,4 +64,12 @@ class EmployeurController extends Controller
     {
         return Domaines_activite::all();
     }
+
+    public function allEmployeur()
+    {
+        return Employeur::select("users.id as id_employeur", "raison_social")
+        ->leftJoin('users', 'users.id', 'employeurs.id_user')
+        ->orderBy('employeurs.id')
+        ->get();
+    }
 }

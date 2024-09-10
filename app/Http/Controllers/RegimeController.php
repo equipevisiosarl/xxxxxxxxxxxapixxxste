@@ -16,4 +16,5 @@ class RegimeController extends Controller
     {
         return Regime::find($id);
     }
+
 }

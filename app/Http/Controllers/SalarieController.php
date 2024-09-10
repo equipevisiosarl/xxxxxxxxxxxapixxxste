@@ -15,7 +15,7 @@ class SalarieController extends Controller
             'full_name' => ['required'],
             'date_naissance' => ['required'],
             'sexe' => ['required'],
-            'matricule_cnps'  => ['required', Rule::unique('salaires')->ignore($id)],
+            'matricule_cnps'  => ['required', Rule::unique('salaries')->ignore($id)],
             'employeur'=> ['required'],
             'id_employeur'=> ['required', 'integer'],
             'date_embauche'=> ['required'],

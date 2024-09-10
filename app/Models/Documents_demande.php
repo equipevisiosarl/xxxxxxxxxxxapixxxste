@@ -12,6 +12,7 @@ class Documents_demande extends Model
     protected $fillable = [
         'id_demande',
         'id_user',
-        'document'
+        'document',
+        'id_document_service'
     ];
 }

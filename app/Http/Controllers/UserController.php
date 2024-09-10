@@ -33,8 +33,9 @@ class UserController extends Controller
                 return response()->json(['success' => false, 'message' => $validator->errors()], 422);
             }
 
-            // Création de l'utilisateur
-            $user = User::create($map_data = map_data($apiData, ['telephone', 'id_regime', 'email', 'password']));
+           
+                $user = User::create($map_data = map_data($apiData, ['telephone', 'id_regime', 'email', 'password']));
+
 
             if ($user) {
                 $data =  ['id_user' => $user->id, 'full_name' => $apiData['name'], 'sexe' => $apiData['sexe']];
@@ -122,9 +123,26 @@ class UserController extends Controller
 
                     case 2:
                         $salarie = SalarieController::getinfo($id);
-                        $salarie->data_employeur = reverse_unset_obj_data(EmployeurController::getinfo($salarie->id_employeur), [
-                            'raison_social', 'nom_responsable', 'situation_geographique', 'photo', 'commune', 'agence'
-                        ]);
+                        if (!EmployeurController::getinfo($salarie->id_employeur)) {
+                            $salarie->data_employeur = object_items_null([
+                                'raison_social',
+                                'nom_responsable',
+                                'situation_geographique',
+                                'photo',
+                                'commune',
+                                'agence'
+                            ]);
+                        } else {
+                            $salarie->data_employeur = reverse_unset_obj_data(EmployeurController::getinfo($salarie->id_employeur), [
+                                'raison_social',
+                                'nom_responsable',
+                                'situation_geographique',
+                                'photo',
+                                'commune',
+                                'agence'
+                            ]);
+                        }
+
                         return $salarie;
                         break;
 
@@ -249,5 +267,12 @@ class UserController extends Controller
         } catch (\Throwable $th) {
             return response()->json(['success' => false, 'message' => $th->getMessage()], 500);
         }
+    }
+
+    public static function getRegimeUser($id)
+    {
+        return User::select('regime')
+        ->leftJoin('regimes' , 'regimes.id',  'users.id_regime')
+        ->find($id)->regime;
     }
 }

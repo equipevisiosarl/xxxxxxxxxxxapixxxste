@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Demande;
 use App\Models\Documents_demande;
+use App\Models\Documents_service;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -16,8 +18,7 @@ class DemandeController extends Controller
             $apiData = $request->json()->all();
             // Validation des données
             $validator = Validator::make($apiData, [
-                'id_service' => ['required', 'integer'],
-                //'date_demande' => ['required'],
+                'id_service' => ['required', 'integer', 'exists:services,id'],
             ]);
 
             // Gestion des erreurs de validation
@@ -25,37 +26,46 @@ class DemandeController extends Controller
                 return response()->json(['success' => false, 'message' => $validator->errors()], 422);
             }
 
-            $apiDatas = insert_table($apiData, [
-                'id_user' => $id_user,
-                'date_demande' => date('Y-m-d H:i:s'),
-                'status' => "non approuvé"
-            ]);
+            $id_service = $apiData['id_service'];
 
+            // Créer ou mettre à jour la demande en tant que brouillon
+            $demande = Demande::updateOrCreate(
+                [
+                    'id_user' => $id_user,
+                    'id_service' => $id_service,
+                    'status' => 'draft', //pour brouillon
+                ],
+                [
+                    'date_demande' => now(), // Tu peux mettre à jour la date ici
+                ]
+            );
 
-            if ($demande = Demande::create($apiDatas)) {
-                if (isset($apiDatas['documents'])) {
-                    foreach ($apiDatas['documents'] as $document) {
-                        $dataDoc = [];
-                        $dataDoc = insert_table($dataDoc, [
-                            'id_demande' => $demande->id,
-                            'id_user' => $demande->id_user,
-                            'document' => $document
-                        ]);
-                        Documents_demande::create($dataDoc);
-                    }
+            if ($demande) {
+                $ifdoc = Documents_service::where('id_service', $id_service)->get();
+                $demande->id_demande = $demande->id;
+                if (!count($ifdoc) > 0) {
+                    return response()->json(['sucess' => true, 'message' => 'demande sauvegardé avec succès, cet service n\'exige aucun document vous pouvez finaliser votre demande en appuyant sur le bouton Finaliser la demande', 'demande' => $demande], 200);
                 }
-                return response()->json(['success' => true, 'message' => 'Demandes enrégistré', 'id_demande' => $demande->id]);
+
+                return response()->json(['sucess' => true, 'message' => 'demande sauvegardé avec succès, cet service exige des documents pour finaliser votre demande uploder les différent document démandé', 'demande' => $demande], 200);
             }
         } catch (\Throwable $th) {
-            return response()->json(['success' => false, 'message' => "Erreur lors de l'enrégistrement de la demande: " . $th->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => "Erreur lors de la création de la demande: " . $th->getMessage()], 500);
         }
     }
 
-    public function getDemandeUser($id_user)
+    public function getDemandeUser($id_user, $status = 'all')
     {
-        return Demande::leftJoin('services', 'services.id', 'demandes.id_service')
+        $demandes = Demande::leftJoin('services', 'services.id', 'demandes.id_service')
             ->orderBy('demandes.id')
-            ->where('id_user', $id_user)->get();
+            ->where('id_user', $id_user);
+        if ($status != 'all') {
+            if (!in_array($status, ['submitted', 'draft', 'approuver'])) {
+                return response()->json(['success' => false, 'message' => "erreur status non pris en charge a utiliser ['submitted', 'draft', 'valider']"], 422);
+            }
+            $demandes->where('status', $status);
+        }
+        return $demandes->get();
     }
 
 
@@ -67,7 +77,7 @@ class DemandeController extends Controller
             ->first();
 
         if (!$demande) {
-            return response()->json(['success' => false, 'message' =>"demande inconnue"], 422);
+            return response()->json(['success' => false, 'message' => "demande inconnue"], 422);
         }
 
         $demande->documents = Documents_demande::where('id_demande', $id_demande)->get();
@@ -77,24 +87,51 @@ class DemandeController extends Controller
     public function delete($id_demande)
     {
         try {
-           $demande = $this->getDemande($id_demande);
+            $demande = $this->getDemande($id_demande);
 
-           if ($demande->status == 'approuvé') {
-            return response()->json(['success' => false, 'message' =>"une demande approuvée ne peut être supprimé"], 422);
-           }
+            if ($demande->status == 'approuver') {
+                return response()->json(['success' => false, 'message' => "une demande approuvée ne peut être supprimé"], 422);
+            }
 
-           if (count($demande->documents) > 0) { 
-            Documents_demande::where("id_demande", $id_demande)->delete();
-           }
+            if (count($demande->documents) > 0) {
+                Documents_demande::where("id_demande", $id_demande)->delete();
+            }
 
-          if ( Demande::where("id", $id_demande)->delete()) {
-            return response()->json(['success' => true, 'message' => 'Demande et les documents liés supprimés']);
-          }
+            if (Demande::where("id", $id_demande)->delete()) {
+                return response()->json(['success' => true, 'message' => 'Demande et les documents liés supprimés']);
+            }
 
-          return response()->json(['success' => false, 'message' =>"erreur demande non supprimé"], 422);
-
+            return response()->json(['success' => false, 'message' => "erreur demande non supprimé"], 422);
         } catch (\Throwable $th) {
             return response()->json(['success' => false, 'message' => "Erreur lors de la suppression de la demande: " . $th->getMessage()], 500);
+        }
+    }
+
+
+
+    public function submitDemande($id_demande)
+    {
+        $demande = Demande::where('id', $id_demande)->where('status', 'draft')->firstOrFail();
+
+        try {
+           $countDocService = Documents_service::where('id_service', $demande->id_service)->count();
+            $countDocDemande = Documents_demande::where('id_demande', $id_demande)->count();
+
+            if ( $countDocService == $countDocDemande) {
+
+                 // Mettre à jour le statut de la demande
+                $demande->update([
+                    'status' => 'submitted',
+                    'date_demande' => now(),
+                ]);
+    
+                return response()->json(['message' => 'Demande finalisée avec succès', 'demande' => $demande], 200);
+            }
+           
+            return response()->json(['success' => false, 'message' => "erreur tout les documents exigés par ce service ne sont uploadées il reste {$countDocDemande} documents sur  $countDocService exigés"], 422);
+          
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['error' => 'echec lors de la finalisation de la demande, aucune demande en suspend trouvée'], 404);
         }
     }
 }

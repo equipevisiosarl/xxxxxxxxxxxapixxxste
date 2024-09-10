@@ -3,11 +3,13 @@
 use App\Http\Controllers\AgenceController;
 use App\Http\Controllers\CommuneController;
 use App\Http\Controllers\DemandeController;
+use App\Http\Controllers\Documents_demandeController;
 use App\Http\Controllers\EmployeurController;
 use App\Http\Controllers\IndependantController;
 use App\Http\Controllers\RegimeController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\Situation_matrimonialsController;
+use App\Http\Controllers\UploadFileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -42,10 +44,31 @@ Route::prefix('matrimonial')->group(function () {
 Route::get('/service/{id_regime}', [ServiceController::class, 'show']);
 
 Route::prefix('demande')->group(function () {
-    Route::get('/{id_demande}', [DemandeController::class, 'getDemande'])->where(['id_demande' => '[0-9]+']);
-    Route::get('/user/{id_user}', [DemandeController::class, 'getDemandeUser'])->where(['id_user' => '[0-9]+']);
+
+    //renvoie une demande
+   Route::get('/{id_demande}', [DemandeController::class, 'getDemande'])->where(['id_demande' => '[0-9]+']);
+
+   //renvoie toutes demandes d'user si status egal a all sinon renvoie toute demande concernant le status
+    Route::get('/user/{id_user}/{status}', [DemandeController::class, 'getDemandeUser'])->where(['id_user' => '[0-9]+']);
+
+    //cree un brouillon pour gerer la demande
     Route::post('/create/{id_user}', [DemandeController::class, 'create'])->where(['id_user' => '[0-9]+']);
-    route::delete('/delete/{id_demande}', [DemandeController::class, 'delete'])->where(['id_demande' => '[0-9]+']);
+
+    //permet d'uploader les documents pour la demande
+    Route::post('/upload_document/{prefix}/{id_demande}', [Documents_demandeController::class, 'upload'])->where(['id_demande' => '[0-9]+']);
+
+    //supprime ou annule une demande qui n'est pas encore valide ou approuve
+    route::delete('/annuler/{id_demande}', [DemandeController::class, 'delete'])->where(['id_demande' => '[0-9]+']);
+
+    //renvoie tout les documents relatif a une demande si prefix = all sinon renvoie tout document concernat le prefix
+    Route::get('/document/{id_demande}/{prefix}', [Documents_demandeController::class, 'getDocumentDemande'])->where(['id_demande' => '[0-9]+']);
+
+    //finaliser une demande
+    Route::post('/final/{id_demande}', [DemandeController::class, 'submitDemande'])->where(['id_demande' => '[0-9]+']);
 });
 
 Route::get('/domaines_activites', [EmployeurController::class, 'get_domaines_activites']);
+
+Route::get('/employeurs', [EmployeurController::class, 'allEmployeur']);
+
+Route::post('upload/{typeFile}/{action}/{prefix}/{id_user}', [UploadFileController::class, 'upload']);
