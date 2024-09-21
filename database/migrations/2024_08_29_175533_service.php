@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('titre');
             $table->text('description');
             $table->integer('id_regime');
-            $table->integer('id_groupe');
+            $table->integer('id_groupe_service');
             $table->integer('prix');
             $table->timestamps();
         });

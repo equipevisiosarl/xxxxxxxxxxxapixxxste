@@ -33,8 +33,8 @@ class UserController extends Controller
                 return response()->json(['success' => false, 'message' => $validator->errors()], 422);
             }
 
-           
-                $user = User::create($map_data = map_data($apiData, ['telephone', 'id_regime', 'email', 'password']));
+
+            $user = User::create($map_data = map_data($apiData, ['telephone', 'id_regime', 'email', 'password']));
 
 
             if ($user) {
@@ -200,7 +200,7 @@ class UserController extends Controller
                             'pays',
                             'id_commune',
                             'situation_geographique',
-                            'photo'
+                            //'photo'
                         ]);
                         return EmployeurController::updateinfo($id, $data);
                         break;
@@ -221,7 +221,7 @@ class UserController extends Controller
                             'id_commune',
                             'lieux_activite',
                             'lieux_residence',
-                            'photo'
+                            //'photo'
                         ]);
                         return SalarieController::updateinfo($id, $data);
                         break;
@@ -239,7 +239,7 @@ class UserController extends Controller
                             'id_commune',
                             'lieux_activite',
                             'lieux_residence',
-                            'photo'
+                            //'photo'
                         ]);
                         return IndependantController::updateinfo($id, $data);
                         break;
@@ -253,7 +253,7 @@ class UserController extends Controller
                             'pays',
                             'id_commune',
                             'lieux_residence',
-                            'photo'
+                            //'photo'
                         ]);
                         return  RetraiteController::updateinfo($id, $data);
                         break;
@@ -272,7 +272,43 @@ class UserController extends Controller
     public static function getRegimeUser($id)
     {
         return User::select('regime')
-        ->leftJoin('regimes' , 'regimes.id',  'users.id_regime')
-        ->find($id)->regime;
+            ->leftJoin('regimes', 'regimes.id',  'users.id_regime')
+            ->find($id)->regime;
+    }
+
+
+    public static function uploadPhotoProfil($id_user, Request $request)
+    {
+
+        $path = UploadFileController::upload('image', 'photo-profil', 'pp', $id_user, $request);
+
+        if(!is_string($path)){
+            return $path;
+        }
+
+        $id_regime = User::find($id_user)->id_regime;
+        switch ($id_regime) {
+
+            case 1: //employeur
+                Employeur::where('id_user', $id_user)->update(['photo' => $path]);
+                break;
+
+            case 2: //employeur
+                Salarie::where('id_user', $id_user)->update(['photo' => $path]);
+                break;
+
+            case 3: //employeur
+                Independant::where('id_user', $id_user)->update(['photo' => $path]);
+                break;
+
+            case 4: //employeur
+                Retraite::where('id_user', $id_user)->update(['photo' => $path]);
+                break;
+
+            default:
+                # code...
+                break;
+        }
+        return response()->json(['succes'=>true ,'message' => 'photo de profile changée avec succès', 'Path' => $path], 200);
     }
 }

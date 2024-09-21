@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('rendez_vous', function (Blueprint $table) {
             $table->id();
+            $table->integer('id_user');
             $table->integer('id_demande');
             $table->datetime('date_rdv');
             $table->integer('id_commune');

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Demande;
 use App\Models\Documents_demande;
 use App\Models\Documents_service;
-use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -124,6 +123,8 @@ class DemandeController extends Controller
                     'status' => 'submitted',
                     'date_demande' => now(),
                 ]);
+
+                NotificationController::ajout($demande->id_user, 'Super vous avez finalisé votre demande, rester à l\'écoute');
     
                 return response()->json(['message' => 'Demande finalisée avec succès', 'demande' => $demande], 200);
             }

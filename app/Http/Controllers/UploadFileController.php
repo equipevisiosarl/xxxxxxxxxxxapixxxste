@@ -32,7 +32,8 @@ class UploadFileController extends Controller
                     break;
 
                 default:
-                    return response()->json(['success' => false, 'message' => "type de fichier non autorisé accept image/doc"], 500);
+                    return response()->json(['success' => false, 'message' => "type de fichier non autorisé accept image/doc/img-doc"], 500);
+                    die();
                     break;
             }
 
@@ -43,6 +44,7 @@ class UploadFileController extends Controller
 
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
+                die();
             }
 
             if ($request->hasFile('file')) {
@@ -80,17 +82,21 @@ class UploadFileController extends Controller
                     if ($api) {
                         return response()->json(['message' => 'Fichier est téléversé avec succès', 'path' => $finalFilePath], 201);
                     }
-                    return $finalFilePath;
+                   //return ['success'=>true, 'path'=> $finalFilePath]; 
+                   return $finalFilePath;
                 }
 
                 return response()->json(['message' => 'Erreur lors du téléversement'], 500);
+                die();
             }
 
             return response()->json(['error' => 'Aucune image fournie'], 400);
+            die();
             //$path = $request->file('file')->store('file/photos-profil', 'public');
 
         } catch (\Throwable $th) {
             return response()->json(['success' => false, 'message' => $th->getMessage()], 500);
+            die();
         }
     }
 }
