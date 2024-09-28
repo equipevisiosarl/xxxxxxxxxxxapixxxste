@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AgenceController;
+use App\Http\Controllers\CarriereController;
 use App\Http\Controllers\CommuneController;
 use App\Http\Controllers\ContratController;
 use App\Http\Controllers\DemandeController;
@@ -41,6 +42,7 @@ Route::prefix('user')->group(function () {
     Route::post('/login', [UserController::class, 'login']);
     Route::get('/profil/{id}', [UserController::class, 'profil']);
     Route::put('/update/{id}', [UserController::class, 'update']);
+    Route::put('/update_password/{id_user}', [UserController::class, 'updatePassword']);
     Route::post('/upload-photo-profile/{id_user}', [UserController::class, 'uploadPhotoProfil']);
 })->where(['id' => '[0-9]+']);
 
@@ -109,10 +111,22 @@ Route::get('rdv/{id_user}', [Rendez_vousController::class, 'get_rdv'])->where(['
 Route::prefix('enfant')->controller(EnfantController::class)->group(function () {
 
     Route::get('/{id_enfant}', 'enfant');
-    Route::get('user/{id_user}', 'get_enfants');
+    Route::get('/user/{id_user}', 'get_enfants');
     Route::post('/create/{id_user}', 'create_enfant');
-    Route::put('update/{id_enfant}', 'update_enfant');
+    Route::put('/update/{id_enfant}', 'update_enfant');
 })->where([
     'id_enfant' => '[0-9]+',
+    'id_user' => '[0-9]+'
+]);
+
+
+Route::prefix('carriere')->controller(CarriereController::class)->group(function () {
+
+    Route::get('/{id_user}', 'getCarriere');
+    Route::post('/create/{id_user}', 'create');
+    Route::put('/update/{id_carriere}', 'update');
+    Route::delete('/delete/{id_carriere}', 'delete');
+})->where([
+    'id_carriere' => '[0-9]+',
     'id_user' => '[0-9]+'
 ]);

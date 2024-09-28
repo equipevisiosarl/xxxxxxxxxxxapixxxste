@@ -10,6 +10,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -311,4 +312,48 @@ class UserController extends Controller
         }
         return response()->json(['succes'=>true ,'message' => 'photo de profile changée avec succès', 'Path' => $path], 200);
     }
+
+
+    public function updatePassword($id_user, Request $request)
+    {
+        try {
+            // Récupérer les données de la requête
+            $apiData = $request->json()->all();
+    
+            // Validation des données
+            $validator = Validator::make($apiData, [
+                'old_password' => ['required', 'min:8'],
+                'new_password' => ['required', 'min:8'],
+            ]);
+    
+            // Gestion des erreurs de validation
+            if ($validator->fails()) {
+                return response()->json(['success' => false, 'message' => $validator->errors()], 422);
+            }
+    
+            // Récupérer l'utilisateur par son ID
+            $user = User::find($id_user);
+    
+            // Vérifier si l'utilisateur existe
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'Utilisateur non trouvé.'], 404);
+            }
+    
+            // Vérifier si l'ancien mot de passe est correct
+            if (!Hash::check($apiData['old_password'], $user->password)) {
+                return response()->json(['success' => false, 'message' => 'Ancien mot de passe incorrect.'], 401);
+            }
+    
+            // Mettre à jour le mot de passe avec le nouveau
+            $user->password = Hash::make($apiData['new_password']);
+            $user->save();
+    
+            // Retourner une réponse de succès
+            return response()->json(['success' => true, 'message' => 'Mot de passe mis à jour avec succès.'], 200);
+    
+        } catch (\Throwable $th) {
+            return response()->json(['success' => false, 'message' => $th->getMessage()], 500);
+        }
+    }
+    
 }
