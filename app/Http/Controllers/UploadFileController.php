@@ -80,17 +80,17 @@ class UploadFileController extends Controller
                     $finalFilePath = asset("storage/{$path}/{$newFileName}");
                   
                     if ($api) {
-                        return response()->json(['message' => 'Fichier est téléversé avec succès', 'path' => $finalFilePath], 201);
+                        return response()->json(['success' => true, 'message' => 'Fichier est téléversé avec succès', 'path' => $finalFilePath], 201);
                     }
                    //return ['success'=>true, 'path'=> $finalFilePath]; 
                    return $finalFilePath;
                 }
 
-                return response()->json(['message' => 'Erreur lors du téléversement'], 500);
+                return response()->json(['success' => false, 'message' => 'Erreur lors du téléversement'], 500);
                 die();
             }
 
-            return response()->json(['error' => 'Aucune image fournie'], 400);
+            return response()->json([ 'success' => false, 'message' => 'Aucune image fournie'], 400);
             die();
             //$path = $request->file('file')->store('file/photos-profil', 'public');
 

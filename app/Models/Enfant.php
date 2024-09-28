@@ -5,12 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Notification extends Model
+class Enfant extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'id_user',
-        'notification',
-        'id_gestionnaire'
+        'fullname',
+        'date_naissance',
+        'niveau_etude',
+        'second_parent',
     ];
 }

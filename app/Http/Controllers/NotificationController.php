@@ -27,12 +27,13 @@ class NotificationController extends Controller
     public function vue($id_notification)
     {
         if (Notification::where('id', $id_notification)->update(['vue' => 'oui'])) {
-            return ['sucess' => true];
+            return ['success' => true];
         }
-        return ['sucess' => false];
+        return ['success' => false];
     }
 
     public static function ajout($id_user, $notification){
-        $notification = Notification::create(compact('id_user', 'notification'));
+        $id_gestionnaire = 0 ;
+        $notification = Notification::create(compact('id_user', 'notification', 'id_gestionnaire'));
     }
 }

@@ -7,6 +7,7 @@ use App\Http\Controllers\DemandeController;
 use App\Http\Controllers\Documents_demandeController;
 use App\Http\Controllers\Dossier_cnpsController;
 use App\Http\Controllers\EmployeurController;
+use App\Http\Controllers\EnfantController;
 use App\Http\Controllers\IndependantController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PackageController;
@@ -96,7 +97,6 @@ Route::get('contrats_packages/{id_user}', [ContratController::class, 'getContrat
 Route::prefix('packages')->controller(PackageController::class)->group(function () {
 
     Route::get('/{id_regime}', 'packages');
-    //Route::get('new/{id_user}', 'new')->where(['id_user' => '[0-9]+']);
     Route::post('demande/{id_groupe_service}/{id_user}', 'demande');
 })->where([
     'id_regime' => '[0-9]+',
@@ -105,3 +105,14 @@ Route::prefix('packages')->controller(PackageController::class)->group(function 
 ]);
 
 Route::get('rdv/{id_user}', [Rendez_vousController::class, 'get_rdv'])->where(['id_user' => '[0-9]+']);
+
+Route::prefix('enfant')->controller(EnfantController::class)->group(function () {
+
+    Route::get('/{id_enfant}', 'enfant');
+    Route::get('user/{id_user}', 'get_enfants');
+    Route::post('/create/{id_user}', 'create_enfant');
+    Route::put('update/{id_enfant}', 'update_enfant');
+})->where([
+    'id_enfant' => '[0-9]+',
+    'id_user' => '[0-9]+'
+]);

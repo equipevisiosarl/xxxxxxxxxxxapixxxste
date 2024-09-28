@@ -41,7 +41,7 @@ class PackageController extends Controller
                 ],
             );
 
-            return response()->json(['sucess' => true, 'message' => "Votre demande de souscription à un package a été prise en compte. Nous vous contacterons plus tard pour vous fournir plus d'informations."], 200);
+            return response()->json(['success' => true, 'message' => "Votre demande de souscription à un package a été prise en compte. Nous vous contacterons plus tard pour vous fournir plus d'informations."], 200);
         } catch (\Throwable $th) {
             return response()->json(['success' => false, 'message' => "Erreur lors de la création de la demande: " . $th->getMessage()], 500);
         }
