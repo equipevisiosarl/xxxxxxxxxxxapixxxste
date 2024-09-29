@@ -12,6 +12,7 @@ use App\Http\Controllers\EnfantController;
 use App\Http\Controllers\IndependantController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\Paiements_honoraireController;
 use App\Http\Controllers\RegimeController;
 use App\Http\Controllers\Rendez_vousController;
 use App\Http\Controllers\ServiceController;
@@ -130,3 +131,7 @@ Route::prefix('carriere')->controller(CarriereController::class)->group(function
     'id_carriere' => '[0-9]+',
     'id_user' => '[0-9]+'
 ]);
+
+Route::get('honoraires/{id_user}', [ContratController::class, 'honoraires']);
+
+Route::get('paiements_honoraires/{id_user}', [Paiements_honoraireController::class, 'allpaiements']);

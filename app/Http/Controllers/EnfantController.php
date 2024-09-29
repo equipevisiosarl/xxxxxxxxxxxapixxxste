@@ -77,7 +77,10 @@ class EnfantController extends Controller
             $apiData = $request->json()->all();
             // Validation des données
             $validator = Validator::make($apiData, [
-                'niveau_etude' => ['nullable'],
+                'fullname' => ['required'],
+                'date_naissance' => ['required'],
+                'niveau_etude' => ['required'],
+                'second_parent' => ['required'],
             ]);
 
             // Gestion des erreurs de validation
@@ -89,7 +92,12 @@ class EnfantController extends Controller
             if (!$enfant) {
                 return response()->json(['success' => false, 'message' => 'enfant inconnu'], 422);
             }
-            $enfant = Enfant::where('id', $id_enfant)->update(['niveau_etude' => $apiData['niveau_etude']]);
+            $enfant = Enfant::where('id', $id_enfant)->update(map_data($apiData, [
+                'fullname',
+                'date_naissance',
+                'niveau_etude',
+                'second_parent'
+            ]));
             return response()->json(['success' => true, 'message' => "niveau d'etude modifié avec success"],);
         } catch (\Throwable $th) {
             return response()->json(['success' => false, 'message' => "Erreur lors de la modification du niveau d'etude: " . $th->getMessage()], 500);
